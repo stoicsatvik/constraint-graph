@@ -16,18 +16,18 @@ This repo contains generic modeling primitives only. Do not add proprietary stra
 ## Acceptance
 A stranger can model a toy supply chain or process in <20 lines and obtain the binding constraint plus a reproducible sensitivity report.
 
-## Current challenger
+## Current champion candidate
 Branch: `foundry/v0-core-graph`
 Draft PR: #1
-Implementation head: `7a8134791376eecf20baeb77e0ddc4b15260764c`
-Capabilities: typed capacity constraints, deterministic max-throughput, binding min-cut extraction, one-edge capacity sensitivity, cyclic graph support, fail-closed validation, six deterministic contracts, narrow CPU-only CI.
-Validation: inspectable implementation and contracts are present; no exact-head workflow run was visible immediately after PR creation.
-Claim status: architecture/contracts SUPPORTED; runtime NOT YET PROVEN.
+Tested implementation head: `bebba4fa408244418cf75030812726a677be271b`
+Capabilities: typed capacity constraints, deterministic max-throughput, binding min-cut extraction, one-edge sensitivity, deterministic all-edge sensitivity ranking, cyclic graph support, fail-closed validation, <20-line toy-process example, narrow CPU-only CI.
+Validation: GitHub Actions run `34555037075`, job `103125775323`, CPython 3.12.14, passed 9/9 deterministic contracts in 0.082 s. The all-edge report contract verifies useful-relief ranking, preserves zero-gain non-binding edges as controls, repeats deterministically, and rejects non-positive probe sizes.
+Claim status: V0 synthetic graph core and deterministic sensitivity-report surface SUPPORTED. Real-world bottleneck or causal operational claims NOT YET PROVEN.
 
 ## Blocker
-Exact-head CI evidence for `7a8134791376eecf20baeb77e0ddc4b15260764c`.
+No V0 evidence blocker. PR remains draft/unmerged pending explicit approval. External usefulness/adoption is not yet established.
 
 ## Next move
-If the core contracts pass, freeze this core as the V0 champion and add a minimal <20-line example/report surface. If they fail, preserve the failure and repair only the violated contract.
+Freeze this V0 surface unless users expose a concrete gap. Highest-EV future work is a fresh, deterministic multi-bottleneck fixture that tests whether one-edge sensitivity can mislead when relief must be coordinated across multiple constraints; do not add visualization or domain-specific logic before that falsification case.
 
-Status: ACTIVE / NOT YET PROVEN
+Status: ACTIVE / SUPPORTED V0
