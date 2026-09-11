@@ -121,3 +121,24 @@ class ConstraintGraph:
         )
         changed = ConstraintGraph(changed_constraints).throughput(source, sink).throughput
         return SensitivityResult(constraint, delta_capacity, baseline, changed)
+
+    def sensitivity_report(
+        self, source: Node, sink: Node, delta_capacity: float = 1.0
+    ) -> tuple[SensitivityResult, ...]:
+        if delta_capacity <= 0:
+            raise ValueError("report delta_capacity must be positive")
+        results = (
+            self.sensitivity(source, sink, constraint, delta_capacity)
+            for constraint in self.constraints
+        )
+        return tuple(
+            sorted(
+                results,
+                key=lambda result: (
+                    -result.delta_throughput,
+                    repr(result.constraint.source),
+                    repr(result.constraint.target),
+                    result.constraint.capacity,
+                ),
+            )
+        )
