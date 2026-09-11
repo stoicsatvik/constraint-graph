@@ -49,6 +49,24 @@ class ConstraintGraphTests(unittest.TestCase):
         result = graph.sensitivity("source", "sink", nonbinding, 5)
         self.assertEqual(result.delta_throughput, 0)
 
+    def test_sensitivity_report_ranks_useful_relief_and_keeps_zero_controls(self):
+        graph = ConstraintGraph([
+            Constraint("source", "prep", 10),
+            Constraint("prep", "pack", 4),
+            Constraint("pack", "sink", 9),
+        ])
+        report = graph.sensitivity_report("source", "sink", 1)
+        self.assertEqual(
+            [(r.constraint.source, r.constraint.target, r.delta_throughput) for r in report],
+            [("prep", "pack", 1), ("pack", "sink", 0), ("source", "prep", 0)],
+        )
+        self.assertEqual(report, graph.sensitivity_report("source", "sink", 1))
+
+    def test_sensitivity_report_rejects_nonpositive_probe(self):
+        graph = ConstraintGraph([Constraint("source", "sink", 1)])
+        with self.assertRaises(ValueError):
+            graph.sensitivity_report("source", "sink", 0)
+
     def test_parallel_constraints_fail_closed(self):
         with self.assertRaises(ValueError):
             ConstraintGraph([
