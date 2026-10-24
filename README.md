@@ -26,3 +26,7 @@ This library computes consequences of the graph and capacities supplied to it. I
 ```bash
 python -m unittest discover -s tests -v
 ```
+
+## Numerical boundary
+
+Constraint capacities and sensitivity deltas must be finite; invalid inputs fail closed. Binding edges are identified only when their isolated throughput gain exceeds an **8-ULP scale-aware numerical tolerance**, rather than an absolute unit threshold. Gains smaller than the available floating-point resolution are not certified as binding. The max-flow solver is checked against an independent exhaustive min-cut oracle on small scaled synthetic graphs; this does not validate external resource-capacity measurements.

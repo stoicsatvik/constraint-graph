@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from collections import deque
+import math
 
 
 @dataclass(frozen=True, order=True)
@@ -13,11 +14,11 @@ class Constraint:
     name: str = ""
 
     def __post_init__(self) -> None:
-        if not self.source or not self.target:
+        if not isinstance(self.source, str) or not isinstance(self.target, str) or not self.source or not self.target:
             raise ValueError("constraint endpoints must be non-empty")
         if self.source == self.target:
             raise ValueError("self-loops are not supported")
-        if self.capacity < 0:
+        if isinstance(self.capacity, bool) or not isinstance(self.capacity, (int, float)) or not math.isfinite(self.capacity) or self.capacity < 0:
             raise ValueError("capacity must be non-negative")
 
 
@@ -78,11 +79,13 @@ class ConstraintGraph:
                 residual[(v, u)] = residual.get((v, u), 0.0) + path_capacity
                 v = u
             total += path_capacity
+            if not math.isfinite(total):
+                raise ValueError("throughput exceeds finite float range")
 
     def sensitivity(self, source: str, sink: str, *, delta: float = 1.0) -> tuple[Sensitivity, ...]:
         """Increase each edge by ``delta`` independently and report throughput change."""
-        if delta <= 0:
-            raise ValueError("delta must be positive")
+        if not isinstance(delta, (int, float)) or not math.isfinite(delta) or delta <= 0:
+            raise ValueError("delta must be finite and positive")
         baseline = self.max_throughput(source, sink)
         reports: list[Sensitivity] = []
         for edge in self.constraints:
@@ -95,8 +98,11 @@ class ConstraintGraph:
         return tuple(reports)
 
     def binding_constraints(self, source: str, sink: str, *, delta: float = 1.0) -> tuple[Constraint, ...]:
-        """Return edges whose isolated capacity increase raises system throughput."""
-        return tuple(r.constraint for r in self.sensitivity(source, sink, delta=delta) if r.marginal_gain > 1e-12)
+        """Return edges with a resolvable positive gain (8 ULP tolerance at throughput scale)."""
+        return tuple(
+            r.constraint for r in self.sensitivity(source, sink, delta=delta)
+            if r.marginal_gain > 8 * math.ulp(max(abs(r.baseline_throughput), abs(r.perturbed_throughput)))
+        )
 
     def _validate_terminals(self, source: str, sink: str) -> None:
         if source == sink:
